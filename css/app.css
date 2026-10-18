@@ -436,7 +436,7 @@ code { font: 13px var(--mono); background: var(--line-2); padding: 1px 6px; bord
 .role:hover { border-color: var(--blue); background: #f8faff; }
 .role > span:not(.avatar) { flex: 1; min-width: 0; } .role b { display: block; font-size: 13.5px; } .role small { color: var(--ink-3); font-size: 12px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .login__hero { position: sticky; top: 0; height: 100vh; overflow: hidden; background: #071029; color: #fff; isolation: isolate; }
-.login__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .32; filter: saturate(.6); transform: scale(1.06); animation: drift 30s ease-in-out infinite alternate; }
+.login__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .45; filter: saturate(.75); transform: scale(1.06); animation: drift 30s ease-in-out infinite alternate; }
 @keyframes drift { to { transform: scale(1.14) translate(-2%, -1%); } }
 .login__hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background:
   radial-gradient(60% 50% at 70% 30%, rgba(47, 91, 234, .35), transparent 70%),

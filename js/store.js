@@ -17,8 +17,8 @@ export const ROLES = {
 export const USERS = [
   { id: "u-client", role: "client", name: "Игорь Ковалёв", company: "ООО «ДальФуд»", inn: "2721004567", email: "i.kovalev@dalfood.ru", phone: "+7 914 205-18-44", avatar: "assets/img/avatar_client.jpg" },
   { id: "u-manager", role: "manager", name: "Анна Васильева", company: "ООО «ЛогиХаб»", email: "a.vasilieva@logihub.ru", avatar: "assets/img/avatar_manager.jpg" },
-  { id: "u-warehouse", role: "warehouse", name: "Павел Орлов", company: "Склад № 1, Комсомольск-на-Амуре", email: "p.orlov@logihub.ru" },
-  { id: "u-dispatcher", role: "dispatcher", name: "Мария Лебедева", company: "Диспетчерская ЛогиХаб", email: "m.lebedeva@logihub.ru" },
+  { id: "u-warehouse", role: "warehouse", name: "Павел Орлов", company: "Склад № 1, Комсомольск-на-Амуре", email: "p.orlov@logihub.ru", avatar: "assets/img/avatar_warehouse.jpg" },
+  { id: "u-dispatcher", role: "dispatcher", name: "Мария Лебедева", company: "Диспетчерская ЛогиХаб", email: "m.lebedeva@logihub.ru", avatar: "assets/img/avatar_dispatcher.jpg" },
   { id: "u-driver", role: "driver", name: "Сергей Никитин", company: "Рефрижератор А452КМ 27", email: "s.nikitin@logihub.ru", avatar: "assets/img/avatar_driver.jpg", driverId: 1 },
 ];
 
