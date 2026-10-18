@@ -28,7 +28,8 @@ export function lines({ labels, series, unit = "", target = null, height = 260, 
   if (target !== null) s += `<g class="chart__target"><line x1="${L}" x2="${W - R}" y1="${y(target)}" y2="${y(target)}"/><text x="${W - R}" y="${y(target) - 6}" text-anchor="end">цель ${target}${unit}</text></g>`;
   for (const se of series) {
     const d = se.values.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
-    s += `<path class="chart__line" d="${d}" stroke="${se.color}"${se.dash ? ` stroke-dasharray="${se.dash}"` : ""}/>`;
+    s += se.dash ? `<path class="chart__line chart__line--dash" d="${d}" stroke="${se.color}" stroke-dasharray="${se.dash}"/>`
+      : `<path class="chart__line" pathLength="1" d="${d}" stroke="${se.color}"/>`;
     s += se.values.map((v, i) => `<circle class="chart__pt" cx="${x(i)}" cy="${y(v)}" r="3" fill="${se.color}"><title>${esc(labels[i])}: ${v}${unit} · ${esc(se.name)}</title></circle>`).join("");
   }
   return s + "</svg>";

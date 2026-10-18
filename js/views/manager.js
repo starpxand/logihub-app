@@ -15,10 +15,11 @@ export function overview(params, user) {
     <div class="actions"><a class="btn btn--primary" href="#/queue">${icon("inbox", 16)} Очередь заявок</a></div></div>
   <div class="kpis">
     ${kpiCard("Новые заявки", q.length, q.length ? `старейшая ${ago(q.at(-1).createdAt, S.now())}` : "очередь пуста", q.length ? "warn" : "")}
-    ${kpiCard("Ожидают оплаты", pay.length, pay.length ? `${pay.filter((o) => new Date(o.payDeadline) - S.now() < 864e5).length} истекают в течение суток` : "нет")}
+    ${kpiCard("Ожидают оплаты", pay.length, (() => { const n = pay.filter((o) => new Date(o.payDeadline) - S.now() < 864e5).length; return !pay.length ? "нет" : n ? `у ${n} срок истекает в течение суток` : "сроки оплаты в норме"; })())}
     ${kpiCard("Заказы в работе", k.active, `выручка в работе ${money(k.revenue)}`)}
     ${kpiCard("OTIF (закрытые)", `${k.otif} %`, `цель 90 % · в срок ${k.onTime} %, в полном объёме ${k.inFull} %`, k.otif >= 90 ? "" : "warn", k.otif)}
   </div>
+  ${flow(all)}
   <section class="card"><h2>${icon("layers")} Заказы по участкам процесса</h2>${board(all)}</section>
   <div class="cols">
     <section class="card"><h2>${icon("inbox")} Очередь на проверку</h2>${table(q, { client: true })}</section>
@@ -35,6 +36,20 @@ function attention(all) {
     if (o.status === "clarify") return [`<li><a href="#/order/${o.id}">${S.code(o)} · ждём уточнения от клиента</a>${badge(o.status)}</li>`];
     return [];
   }).join("");
+}
+
+// Поток процесса: участки BPMN слева направо, число заказов и выручка на каждом
+export function flow(all) {
+  const steps = [["Заявка", ["new", "clarify"], "inbox", "2–5"], ["Оплата", ["confirmed"], "card", "7–9"], ["Склад", ["paid", "picking"], "scan", "10–13"],
+    ["Отгрузка", ["ready"], "boxes", "13–14"], ["В пути", ["in_transit", "delayed"], "truck", "15–18"], ["Приёмка", ["delivered", "claim"], "check", "19–24"], ["Выполнен", ["closed"], "flag", "25–26"]];
+  const max = Math.max(1, ...steps.map(([, st]) => all.filter((o) => st.includes(o.status)).length));
+  return `<section class="flow" aria-label="Поток процесса">${steps.map(([t, st, ic, bp], i) => {
+    const l = all.filter((o) => st.includes(o.status));
+    const bad = l.some((o) => ["delayed", "claim"].includes(o.status));
+    return `<div class="flow__step${bad ? " is-bad" : ""}" style="--i:${i};--h:${(l.length / max) * 100}%">
+      <span class="flow__ic">${icon(ic, 18)}</span><b>${l.length}</b><span class="flow__t">${t}</span>
+      <small>${money(l.reduce((a, o) => a + o.total, 0))}</small><em>BPMN ${bp}</em><i class="flow__fill"></i></div>`;
+  }).join("")}</section>`;
 }
 
 const COLS = [["Проверка", ["new", "clarify"]], ["Оплата", ["confirmed"]], ["Склад", ["paid", "picking"]], ["Отгрузка", ["ready"]], ["В пути", ["in_transit", "delayed"]], ["Приёмка", ["delivered", "claim"]]];
