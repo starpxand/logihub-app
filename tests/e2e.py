@@ -213,7 +213,9 @@ def main():
         @step("Мобильная ширина 390 px: нет горизонтальной прокрутки")
         def t13():
             m = b.new_page(viewport={"width": 390, "height": 844})
-            m.goto(BASE + "#/login"); m.click('[data-user="u-client"]'); m.wait_for_timeout(600)
+            m.goto(BASE + "#/login"); m.wait_for_timeout(400)
+            assert m.evaluate("document.documentElement.scrollWidth <= innerWidth + 1"), "горизонтальная прокрутка на экране входа"
+            m.click('[data-user="u-client"]'); m.wait_for_timeout(600)
             for r in ["#/overview", "#/new", "#/orders", "#/track", f"#/order/{oid}", "#/docs", "#/claims", "#/process"]:
                 m.evaluate(f"location.hash = {r!r}"); m.wait_for_timeout(400)
                 over = m.evaluate("document.querySelector('.main').scrollWidth > document.querySelector('.main').clientWidth + 1")
