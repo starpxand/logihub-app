@@ -6,10 +6,14 @@
 
 Запуск:  python -m http.server 8770   (в корне репозитория)
          python tests/e2e.py [http://127.0.0.1:8770/]
+         HEADED=1 – прогон в видимом окне браузера с замедлением (для показа)
 """
 import os
 import sys
 from playwright.sync_api import sync_playwright, expect
+
+sys.stdout.reconfigure(encoding="utf-8")   # консоль Windows (cp1251) не падает на «→» и «–»
+HEADED = bool(os.environ.get("HEADED"))
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8770/"
 results = []
@@ -55,7 +59,7 @@ def status(pg, oid):
 
 def main():
     with sync_playwright() as p:
-        b = p.chromium.launch(channel=os.environ.get("PW_CHANNEL", "chrome") or None)
+        b = p.chromium.launch(channel=os.environ.get("PW_CHANNEL", "chrome") or None, headless=not HEADED, slow_mo=250 if HEADED else 0)
         pg = b.new_page(viewport={"width": 1440, "height": 900})
         errors = []
         pg.on("pageerror", lambda e: errors.append(str(e)))
