@@ -3,6 +3,7 @@ import * as S from "../store.js";
 import { icon, esc, badge, stages, money, kg, fmtDT, fmtDate, ago, left, avatar, empty } from "../ui.js";
 import { buttons, bind } from "../actions.js";
 import { mapSvg } from "../map.js";
+import { shipPanel, lifecycle, startLive } from "../live.js";
 
 const WHO = { client: "Клиент", manager: "Менеджер", warehouse: "Склад", dispatcher: "Диспетчер", driver: "Водитель", system: "Система" };
 
@@ -15,6 +16,7 @@ export function order([id], user) {
   const acts = buttons(o, user);
   const docs = documents(o);
   const moving = ["in_transit", "delayed", "delivered"].includes(o.status) || (o.status === "ready" && o.driverId);
+  const live = ["in_transit", "delayed"].includes(o.status);
   const html = `
   <div class="page-head">
     <div><a class="back" href="javascript:history.back()">${icon("back", 16)} Назад</a>
@@ -22,9 +24,11 @@ export function order([id], user) {
       <div class="row">${badge(o.status)} ${stages(S.stageOf(o))} <span class="muted">создан ${fmtDT(o.createdAt)}</span></div></div>
     <div class="actions">${acts || ""}</div>
   </div>
+  ${lifecycle(o)}
+  ${live ? shipPanel(o) : ""}
   ${o.status === "confirmed" ? `<div class="banner banner--warn">${icon("clock", 18)}<span>Оплатите счёт до <b>${fmtDT(o.payDeadline)}</b> – осталось ${left(o.payDeadline, S.now())}. Без оплаты заказ будет отменён автоматически (шлюз 9).</span></div>` : ""}
   ${o.status === "clarify" ? `<div class="banner banner--warn">${icon("info", 18)}<span>Комментарий менеджера: <b>${esc(o.managerComment)}</b></span></div>` : ""}
-  ${o.status === "delayed" ? `<div class="banner banner--bad">${icon("alert", 18)}<span>Отклонение от графика: +${S.fmtMin(o.delay?.minutes || 0)} – ${esc(o.delay?.reason || "")}. ${o.delay?.resolved ? `Маршрут перепланирован: ${esc(o.route?.variant)}, новый ETA ${fmtDT(o.eta)}.` : "Ожидает перепланирования диспетчером."}</span></div>` : ""}
+  ${o.status === "delayed" && !live ? `<div class="banner banner--bad">${icon("alert", 18)}<span>Отклонение от графика: +${S.fmtMin(o.delay?.minutes || 0)} – ${esc(o.delay?.reason || "")}. ${o.delay?.resolved ? `Маршрут перепланирован: ${esc(o.route?.variant)}, новый ETA ${fmtDT(o.eta)}.` : "Ожидает перепланирования диспетчером."}</span></div>` : ""}
   <div class="cols">
     <div class="stack">
       <section class="card">
@@ -42,7 +46,7 @@ export function order([id], user) {
           ${o.comment ? `<dt>Комментарий</dt><dd>${esc(o.comment)}</dd>` : ""}
         </dl>
       </section>
-      ${moving ? `<section class="card card--flush"><h2 class="pad">${icon("pin")} Трекинг</h2>${mapSvg([{ dest: o.destination, progress: o.route?.progress ?? 0, tone: o.status === "delayed" ? "bad" : "ok", label: o.status === "delivered" ? "доставлен" : `${o.route?.progress ?? 0} %`, active: true, replan: o.delay?.resolved }], { compact: true })}</section>` : ""}
+      ${moving ? `<section class="card card--flush"><h2 class="pad">${icon("pin")} Трекинг</h2>${mapSvg([{ id: o.id, dest: o.destination, progress: S.progress(o), tone: o.status === "delayed" ? "bad" : "ok", label: o.status === "delivered" ? "доставлен" : S.code(o), active: true, replan: o.delay?.resolved }], { compact: true })}</section>` : ""}
       ${o.picking ? picking(o) : ""}
       ${o.claim ? claim(o) : ""}
       <section class="card">
@@ -77,7 +81,7 @@ export function order([id], user) {
       </section>
     </div>
   </div>`;
-  return { title: S.code(o), crumbs: ["Заказы"], html, mount: bind };
+  return { title: S.code(o), crumbs: ["Заказы"], html, mount: (r) => { bind(r); startLive(r); } };
 }
 
 export function documents(o) {

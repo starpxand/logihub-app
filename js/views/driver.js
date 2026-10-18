@@ -3,6 +3,7 @@ import * as S from "../store.js";
 import { HUB } from "../pricing.js";
 import { icon, esc, badge, stages, orderLink, kg, fmtDT, fmtDate, empty } from "../ui.js";
 import { buttons, bind } from "../actions.js";
+import { startLive } from "../live.js";
 import { mapSvg } from "../map.js";
 
 const ROUTE = {
@@ -21,11 +22,11 @@ export function trip(params, user) {
   }
   const d = S.driver(o.driverId);
   const pts = [`Склад ЛогиХаб, ${HUB}`, ...ROUTE[o.destination], `Получатель: ${o.address}`];
-  const pos = Math.round(((o.route?.progress ?? 0) / 100) * (pts.length - 1));
+  const pos = Math.round((S.progress(o) / 100) * (pts.length - 1));
   const html = `
   <div class="page-head"><div><h1>Рейс ${S.code(o)}</h1><p class="muted">${esc(d.vehicle)} · ${esc(d.plate)} ${stages([15, 16, 19])}</p></div><div>${badge(o.status)}</div></div>
   <div class="driver">
-    <section class="card card--flush">${mapSvg([{ dest: o.destination, progress: o.route?.progress ?? 0, tone: o.status === "delayed" ? "bad" : o.status === "ready" ? "plan" : "ok", label: `${o.route?.progress ?? 0} %`, active: true, replan: o.delay?.resolved }], { compact: true })}</section>
+    <section class="card card--flush">${mapSvg([{ id: o.id, dest: o.destination, progress: S.progress(o), tone: o.status === "delayed" ? "bad" : o.status === "ready" ? "plan" : "ok", label: S.code(o), active: true, replan: o.delay?.resolved }], { compact: true })}</section>
     ${o.status === "delayed" ? `<div class="banner banner--bad">${icon("alert", 18)}<span>Отставание +${S.fmtMin(o.delay?.minutes || 0)}: ${esc(o.delay?.reason)}. ${o.delay?.resolved ? `Новый маршрут: ${esc(o.route.variant)}, ETA ${fmtDT(o.eta)}.` : "Диспетчер перепланирует маршрут."}</span></div>` : ""}
     <section class="card"><h2>${icon("route")} Маршрутный лист</h2>
       <ol class="route-list">${pts.map((p, i) => `<li class="${i < pos ? "is-done" : i === pos ? "is-cur" : ""}"><span></span><b>${esc(p)}</b>${i === 0 ? `<small>погрузка ${fmtDate(o.shipDate)}, ворота ${o.gate || 3}</small>` : i === pts.length - 1 ? `<small>окно ${esc(o.window)} · ETA ${fmtDT(o.eta)}</small>` : ""}</li>`).join("")}</ol></section>
@@ -35,7 +36,7 @@ export function trip(params, user) {
       <dt>Документы</dt><dd><a class="link" href="#/doc/ttn/${o.id}">ТТН № ${o.id}</a> · <a class="link" href="#/doc/waybill/${o.id}">маршрутный лист</a></dd></dl></section>
     <div class="driver__actions">${buttons(o, user)}</div>
   </div>`;
-  return { title: `Рейс ${S.code(o)}`, crumbs: ["Водитель"], html, mount: bind };
+  return { title: `Рейс ${S.code(o)}`, crumbs: ["Водитель"], html, mount: (r) => { bind(r); startLive(r); } };
 }
 
 export function trips(params, user) {

@@ -2,6 +2,7 @@
 import * as S from "../store.js";
 import { icon, esc, badge, stages, orderLink, kg, fmtDT, fmtDate, empty, avatar } from "../ui.js";
 import { buttons, bind } from "../actions.js";
+import { startLive } from "../live.js";
 import { mapSvg } from "../map.js";
 import { kpiCard, rowLinks } from "./client.js";
 
@@ -15,11 +16,11 @@ export function map([id], user) {
     <div class="legend"><span class="lg lg--plan">плановый маршрут</span><span class="lg lg--done">пройдено</span><span class="lg lg--replan">новый маршрут</span></div></div>
   ${!list.length ? empty("Рейсов в пути нет") : `
   <div class="cols cols--map">
-    <section class="card card--flush">${mapSvg(list.map((o) => ({ dest: o.destination, progress: o.route?.progress ?? 0, tone: o.status === "delayed" ? "bad" : o.status === "ready" ? "plan" : "ok",
+    <section class="card card--flush">${mapSvg(list.map((o) => ({ id: o.id, dest: o.destination, progress: S.progress(o), tone: o.status === "delayed" ? "bad" : o.status === "ready" ? "plan" : "ok",
       label: `${S.code(o)}${o.status === "delayed" ? ` · +${S.fmtMin(o.delay?.minutes || 0)}` : ""}`, active: o === sel, replan: o.delay?.resolved })))}</section>
     <div class="stack">
       <section class="card"><h2>${icon("truck")} Рейсы</h2><ul class="rides">${list.map((o) => `<li class="${o === sel ? "is-sel" : ""}"><a href="#/map/${o.id}"><b>${S.code(o)}</b> → ${esc(o.destination)}
-        <small>${esc(S.driver(o.driverId)?.plate || "")} · ${o.route?.progress ?? 0} % · ETA ${fmtDT(o.eta)}</small></a>${badge(o.status)}</li>`).join("")}</ul></section>
+        <small>${esc(S.driver(o.driverId)?.plate || "")} · ${Math.round(S.progress(o))} % · ETA ${fmtDT(o.eta)}</small></a>${badge(o.status)}</li>`).join("")}</ul></section>
       ${sel ? `
       ${sel.status === "delayed" ? `<section class="card card--warn"><h2>${icon("alert")} Отклонение от графика: +${S.fmtMin(sel.delay?.minutes || 0)}</h2>
         <p>${esc(sel.delay?.reason || "")}. Прогноз прибытия сдвигается за пределы окна доставки ${esc(sel.window)}.</p>
@@ -30,7 +31,7 @@ export function map([id], user) {
         <div class="actions"><a class="btn btn--ghost" href="#/order/${sel.id}">Карточка заказа</a><a class="btn btn--ghost" href="#/doc/waybill/${sel.id}">${icon("file", 16)} Маршрутный лист</a></div></section>` : ""}
     </div>
   </div>`}`;
-  return { title: "Карта рейсов", crumbs: ["Мониторинг"], html, mount: bind };
+  return { title: "Карта рейсов", crumbs: ["Мониторинг"], html, mount: (r) => { bind(r); startLive(r); } };
 }
 
 export function plan(params, user) {
