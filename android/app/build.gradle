@@ -1,0 +1,58 @@
+plugins {
+    id "com.android.application"
+}
+
+// Ключ подписи релизной сборки – в android/keystore.properties (не хранится в git)
+def ksFile = rootProject.file("keystore.properties")
+def ks = new Properties()
+if (ksFile.exists()) ks.load(new FileInputStream(ksFile))
+
+android {
+    namespace "ru.logihub.app"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "ru.logihub.app"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+    signingConfigs {
+        release {
+            if (ksFile.exists()) {
+                storeFile rootProject.file(ks["storeFile"])
+                storePassword ks["storePassword"]
+                keyAlias ks["keyAlias"]
+                keyPassword ks["keyPassword"]
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig ksFile.exists() ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    sourceSets {
+        main.assets.srcDirs += ["$buildDir/web"]
+    }
+}
+
+dependencies {
+    implementation "androidx.webkit:webkit:1.11.0"
+}
+
+// Веб-приложение из корня репозитория копируется в ассеты APK (assets/www) – одна кодовая база для сайта и телефона
+def webRoot = rootProject.file("..")
+tasks.register("copyWeb", Copy) {
+    from(webRoot) {
+        include "index.html", "manifest.webmanifest", "css/**", "js/**", "data/**", "assets/**"
+    }
+    into "$buildDir/web/www"
+}
+preBuild.dependsOn("copyWeb")
