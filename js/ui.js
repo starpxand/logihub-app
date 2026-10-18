@@ -49,7 +49,7 @@ const P = {
 export const icon = (name, size = 18, cls = "") =>
   `<svg class="ic ${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || ""}</svg>`;
 
-export const badge = (status) => `<span class="badge badge--${STATUSES[status]?.tone || "muted"}">${esc(statusText(status))}</span>`;
+export const badge = (status, short = false) => `<span class="badge badge--${STATUSES[status]?.tone || "muted"}" title="${esc(statusText(status))}">${esc(short ? STATUSES[status]?.short || statusText(status) : statusText(status))}</span>`;
 export const stages = (list) => list?.length ? `<span class="bpmn-chip" title="Этапы BPMN-модели «Процесс управления логистикой»">BPMN ${list.length > 1 ? `${list[0]}–${list.at(-1)}` : list[0]}</span>` : "";
 export const orderLink = (o) => `<a class="mono link" href="#/order/${o.id}">${code(o)}</a>`;
 export const kg = (w) => (w >= 1000 ? `${(w / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} т` : `${w} кг`);
@@ -117,4 +117,33 @@ export function left(deadline, nowD) {
   if (ms <= 0) return "срок истёк";
   const h = Math.floor(ms / 3600e3), d = Math.floor(h / 24);
   return d ? `${d} дн ${h % 24} ч` : `${h} ч ${Math.floor(ms / 60000) % 60} мин`;
+}
+
+/** Числа в элементах [data-count] (и в .kpi b, .price) отсчитываются от нуля – формат (пробелы, запятая, единицы) сохраняется. */
+export function countUp(root, sel = "[data-count], .kpi b, .price") {
+  if (!root || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  root.querySelectorAll(sel).forEach((el) => {
+    const text = el.textContent;
+    const m = text.match(/\d+(?:[\s  ]\d{3})*(?:[.,]\d+)?/);
+    if (!m) return;
+    const raw = m[0];
+    const dec = (raw.match(/[.,](\d+)$/) || [, ""])[1].length;
+    const sep = raw.includes(".") ? "." : ",";
+    const target = parseFloat(raw.replace(/[\s  ]/g, "").replace(",", "."));
+    if (!(target > 0)) return;
+    const grouped = /[\s  ]/.test(raw);
+    const fmt = (v) => {
+      let s2 = dec ? v.toFixed(dec) : String(Math.round(v));
+      if (grouped) s2 = Number(s2).toLocaleString("ru-RU", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+      else if (dec) s2 = s2.replace(".", sep);
+      return text.slice(0, m.index) + s2 + text.slice(m.index + raw.length);
+    };
+    const t0 = performance.now(), dur = 900 + Math.min(600, target / 50);
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = k < 1 ? fmt(target * e) : text;
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
 }

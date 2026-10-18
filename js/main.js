@@ -1,6 +1,6 @@
 // Оболочка приложения: маршрутизация по хэшу, навигация по ролям, верхняя панель, уведомления, демо-время.
 import * as S from "./store.js";
-import { icon, esc, avatar, toast, ago } from "./ui.js";
+import { icon, esc, avatar, toast, ago, countUp } from "./ui.js";
 import * as login from "./views/login.js";
 import * as common from "./views/common.js";
 import * as client from "./views/client.js";
@@ -85,7 +85,12 @@ function render() {
   app.className = `app app--${user.role}`;
   app.dataset.route = location.hash;
   app.innerHTML = shell(user, nav, route, page);
-  page.mount?.(app.querySelector(".content"));
+  const content = app.querySelector(".content");
+  if (!same) {                                    // переход на экран – появление и отсчёт KPI; действия на том же экране без анимации
+    content.classList.add("enter");
+    countUp(content);
+  }
+  page.mount?.(content);
   bindShell(user);
   if (same) app.querySelector(".main").scrollTop = scroll;
 }

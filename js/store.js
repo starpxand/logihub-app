@@ -41,19 +41,19 @@ export const DRIVERS = [  // id, имя, тип транспорта, машин
 
 // Статус → подпись, этапы BPMN, тон бейджа
 export const STATUSES = {
-  new:        { text: "На проверке у менеджера", stages: [2, 3], tone: "info" },
-  clarify:    { text: "Требует уточнения", stages: [4, 5], tone: "warn" },
-  confirmed:  { text: "Ожидает оплаты", stages: [7, 8], tone: "warn" },
-  paid:       { text: "Оплачен, передан на склад", stages: [9], tone: "info" },
-  picking:    { text: "Комплектуется на складе", stages: [10, 11, 12], tone: "info" },
-  ready:      { text: "Скомплектован, ТТН оформлена", stages: [13, 14], tone: "info" },
-  in_transit: { text: "В пути", stages: [15, 16], tone: "ok" },
-  delayed:    { text: "В пути, задержка", stages: [17, 18], tone: "bad" },
-  delivered:  { text: "Доставлен, ожидает приёмки", stages: [19, 20, 21], tone: "ok" },
-  accepted:   { text: "Принят без замечаний", stages: [22], tone: "ok" },
-  claim:      { text: "Претензия на рассмотрении", stages: [23], tone: "bad" },
-  closed:     { text: "Выполнен", stages: [25, 26], tone: "done" },
-  cancelled:  { text: "Отменён", stages: [9], tone: "muted" },
+  new:        { short: "На проверке", text: "На проверке у менеджера", stages: [2, 3], tone: "info" },
+  clarify:    { short: "Уточнение", text: "Требует уточнения", stages: [4, 5], tone: "warn" },
+  confirmed:  { short: "Ждёт оплаты", text: "Ожидает оплаты", stages: [7, 8], tone: "warn" },
+  paid:       { short: "Оплачен", text: "Оплачен, передан на склад", stages: [9], tone: "info" },
+  picking:    { short: "Сборка", text: "Комплектуется на складе", stages: [10, 11, 12], tone: "info" },
+  ready:      { short: "К отгрузке", text: "Скомплектован, ТТН оформлена", stages: [13, 14], tone: "info" },
+  in_transit: { short: "В пути", text: "В пути", stages: [15, 16], tone: "ok" },
+  delayed:    { short: "Задержка", text: "В пути, задержка", stages: [17, 18], tone: "bad" },
+  delivered:  { short: "Доставлен", text: "Доставлен, ожидает приёмки", stages: [19, 20, 21], tone: "ok" },
+  accepted:   { short: "Принят", text: "Принят без замечаний", stages: [22], tone: "ok" },
+  claim:      { short: "Претензия", text: "Претензия на рассмотрении", stages: [23], tone: "bad" },
+  closed:     { short: "Выполнен", text: "Выполнен", stages: [25, 26], tone: "done" },
+  cancelled:  { short: "Отменён", text: "Отменён", stages: [9], tone: "muted" },
 };
 
 // Допустимые переходы (потоки операций BPMN) – те же, что в боте
