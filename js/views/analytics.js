@@ -1,7 +1,7 @@
 // Аналитика – интеграция дашборда: KPI, OTIF, выручка, регионы, затраты, релизы (по выгрузке logihub-dashboard)
 // плюс OTIF живых заказов приложения (этап 25 «Закрыть заказ и пересчитать OTIF»).
 import * as S from "../store.js";
-import { icon, esc, stages, money } from "../ui.js";
+import { icon, esc, stages, money, countUp } from "../ui.js";
 import { lines, bars, hbars, donut, fmtN } from "../charts.js";
 import { kpiCard } from "./client.js";
 
@@ -31,7 +31,11 @@ async function mount(root) {
     host.innerHTML = `<div class="card"><p>Не удалось загрузить выгрузку дашборда.</p></div>`;
     return;
   }
-  const draw = (y) => { host.innerHTML = dashboard(cache, y); };
+  const draw = (y) => {
+    host.innerHTML = dashboard(cache, y);
+    host.classList.remove("draw"); void host.offsetWidth; host.classList.add("draw");
+    countUp(host);
+  };
   root.querySelectorAll("[data-period] button").forEach((b) => b.addEventListener("click", () => {
     root.querySelectorAll("[data-period] button").forEach((x) => x.classList.toggle("is-on", x === b));
     draw(b.dataset.y);
@@ -54,7 +58,7 @@ function dashboard(d, y) {
   const otifOk = t.otif >= d.otif_target;
   return `
   <div class="kpis">
-    ${kpiCard("Заказов выполнено", t.orders.toLocaleString("ru-RU"), `отменено ${t.cancelled} (${((t.cancelled / (t.orders + t.cancelled)) * 100).toFixed(1)} %)`)}
+    ${kpiCard("Заказов выполнено", t.orders.toLocaleString("ru-RU"), `отменено ${t.cancelled} (${((t.cancelled / (t.orders + t.cancelled)) * 100).toFixed(1).replace(".", ",")} %)`)}
     ${kpiCard("Выручка", `${fmtN(t.revenue)} ₽`, `прибыль ${fmtN(t.profit)} ₽`)}
     ${kpiCard("Рентабельность", `${((t.profit / t.revenue) * 100).toFixed(1).replace(".", ",")} %`, `затраты ${fmtN(t.cost)} ₽`)}
     ${kpiCard("OTIF", `${t.otif.toFixed(1).replace(".", ",")} %`, `цель ${d.otif_target} % · в срок ${t.on_time.toFixed(1).replace(".", ",")} %, в полном объёме ${t.in_full.toFixed(1).replace(".", ",")} %`, otifOk ? "" : "warn", t.otif)}

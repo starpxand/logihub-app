@@ -37,8 +37,45 @@ const LAND = `${poly(COAST)} L-20 700 L-20 -40 Z`;
 const SAKH = `${poly(SAKH_PTS)} Z`;
 const AMUR = poly(AMUR_PTS);
 
+// пройденная часть ломаной до доли t
+function donePart(pts, t) {
+  const total = pts.slice(1).reduce((a, p, i) => a + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
+  const done = [pts[0]];
+  let acc = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const s = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+    if ((acc + s) / total <= t) { done.push(pts[i]); acc += s; } else { done.push(along(pts, t)); break; }
+  }
+  return done;
+}
+
+/** Живое движение рейсов: машины едут по маршрутам; speed – доля маршрута в секунду. Возвращает функцию остановки. */
+export function animateRides(svg, rides, { speed = 0.035, loop = true } = {}) {
+  if (!svg || matchMedia("(prefers-reduced-motion: reduce)").matches) return () => {};
+  const groups = [...svg.querySelectorAll(".map__ride")];
+  const state = rides.map((r) => ({ pts: routePoints(r.dest), t: (r.progress ?? 0) / 100, v: speed * (r.speed ?? 1) }));
+  let last = performance.now(), raf = 0;
+  const frame = (now) => {
+    if (!svg.isConnected) return;
+    const dt = Math.min(0.1, (now - last) / 1000); last = now;
+    state.forEach((st, k) => {
+      st.t += st.v * dt;
+      if (st.t >= 1) st.t = loop ? 0 : 1;
+      const [x, y] = along(st.pts, st.t);
+      const g = groups[k];
+      g.querySelector(".map__truck").setAttribute("transform", `translate(${x} ${y})`);
+      g.querySelector(".map__done").setAttribute("d", line(donePart(st.pts, st.t)));
+      const tag = g.querySelector(".map__tag");
+      if (tag) tag.setAttribute("transform", `translate(${x + 14} ${y - 26})`);
+    });
+    raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+  return () => cancelAnimationFrame(raf);
+}
+
 /** Карта: rides – [{ dest, progress, tone, label, active, replan }] */
-export function mapSvg(rides = [], { compact = false } = {}) {
+export function mapSvg(rides = [], { compact = false, dark = false } = {}) {
   const routes = Object.keys(VIA).map((d) => `<path class="map__road" d="${line(routePoints(d))}"/>`).join("");
   const ferry = (() => { const a = px([140.25, 49.09]), b = px([142.05, 47.04]); return `<path class="map__ferry" d="M${a[0]} ${a[1]} L${b[0]} ${b[1]}"/>`; })();
   const cities = Object.entries(CITY).map(([n, c]) => {
@@ -50,14 +87,7 @@ export function mapSvg(rides = [], { compact = false } = {}) {
   const rideEls = rides.map((r) => {
     const pts = routePoints(r.dest);
     const t = (r.progress ?? 0) / 100;
-    const done = [];
-    const total = pts.slice(1).reduce((a, p, i) => a + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
-    let acc = 0;
-    done.push(pts[0]);
-    for (let i = 1; i < pts.length; i++) {
-      const s = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
-      if ((acc + s) / total <= t) { done.push(pts[i]); acc += s; } else { done.push(along(pts, t)); break; }
-    }
+    const done = donePart(pts, t);
     const [x, y] = along(pts, t);
     return `<g class="map__ride map__ride--${r.tone || "ok"}${r.active ? " is-active" : ""}">
       <path class="map__plan" d="${line(pts)}"/>${r.replan ? `<path class="map__replan" d="${line(pts.map((p, i) => i && i < pts.length - 1 ? [p[0] + 14, p[1] + 10] : p))}"/>` : ""}
@@ -66,7 +96,7 @@ export function mapSvg(rides = [], { compact = false } = {}) {
       ${r.label ? `<g class="map__tag" transform="translate(${x + 14} ${y - 26})"><rect width="${r.label.length * 6.6 + 16}" height="22" rx="11"/><text x="8" y="15">${r.label}</text></g>` : ""}
     </g>`;
   }).join("");
-  return `<svg class="map${compact ? " map--compact" : ""}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Карта рейсов">
+  return `<svg class="map${compact ? " map--compact" : ""}${dark ? " map--dark" : ""}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Карта рейсов">
     <rect width="${W}" height="${H}" class="map__sea"/>
     <path class="map__land" d="${LAND}"/><path class="map__land" d="${SAKH}"/>
     <path class="map__river" d="${AMUR}"/>

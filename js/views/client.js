@@ -48,7 +48,7 @@ export function kpiCard(label, value, sub, tone = "", bar = null) {
 export function table(list, { client = false } = {}) {
   if (!list.length) return empty("Заказов пока нет", "Оформите первую заявку – это займёт пару минут");
   return `<div class="table-wrap"><table class="table"><thead><tr><th>Заказ</th>${client ? "<th>Клиент</th>" : ""}<th>Куда</th><th>Груз</th><th>Сумма</th><th>Статус</th></tr></thead><tbody>
-  ${list.map((o) => `<tr data-href="#/order/${o.id}"><td>${orderLink(o)}</td>${client ? `<td>${esc(S.clientOf(o)?.company)}</td>` : ""}<td>${esc(o.destination)}</td><td>${esc(o.cargo)}, ${kg(o.weight)}</td><td class="num">${money(o.total)}</td><td>${badge(o.status)}</td></tr>`).join("")}
+  ${list.map((o) => `<tr data-href="#/order/${o.id}"><td>${orderLink(o)}</td>${client ? `<td>${esc(S.clientOf(o)?.company)}</td>` : ""}<td>${esc(o.destination)}</td><td>${esc(o.cargo)}, ${kg(o.weight)}</td><td class="num">${money(o.total)}</td><td>${badge(o.status, true)}</td></tr>`).join("")}
   </tbody></table></div>`;
 }
 export function rowLinks(root) {
@@ -201,7 +201,7 @@ export function documents(params, user) {
   ${pay.map((o) => `<div class="banner banner--warn">${icon("clock", 18)}<span>Оплатите счёт № ${o.id} на <b>${money(o.total)}</b> до ${fmtDT(o.payDeadline)} – осталось ${left(o.payDeadline, S.now())}. Без оплаты заказ будет отменён автоматически.</span>
     <span class="actions">${buttons(o)}</span></div>`).join("")}
   <section class="card">${list.length ? `<div class="table-wrap"><table class="table"><thead><tr><th>Заказ</th><th>Документы</th><th>Сумма</th><th>Статус</th></tr></thead><tbody>
-    ${list.map((o) => `<tr><td>${orderLink(o)}</td><td class="doclinks">${docLinks(o)}</td><td class="num">${money(o.total)}</td><td>${badge(o.status)}</td></tr>`).join("")}</tbody></table></div>` : empty("Документов пока нет", "Договор-счёт появится после проверки заявки")}</section>`;
+    ${list.map((o) => `<tr><td>${orderLink(o)}</td><td class="doclinks">${docLinks(o)}</td><td class="num">${money(o.total)}</td><td>${badge(o.status, true)}</td></tr>`).join("")}</tbody></table></div>` : empty("Документов пока нет", "Договор-счёт появится после проверки заявки")}</section>`;
   return { title: "Счета и документы", html, mount: bind };
 }
 function docLinks(o) {
