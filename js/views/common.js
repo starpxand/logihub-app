@@ -178,3 +178,24 @@ export function about(params, user) {
   <section class="card card--soft"><p>Учебный проект по дисциплине «Современные программные средства», ФКТ ФГБОУ ВО «КнАГУ», 2026. Разработчик – Попов А.С., группа 5ИТб-2.</p></section>`;
   return { title: "О системе", crumbs: ["Справка"], html };
 }
+
+// ------------------------------------------------------------------ «Ещё»: профиль, смена роли, выход, справка (главное меню на телефоне)
+export function more(params, user) {
+  const unseen = S.unseen(user);
+  const html = `
+  <section class="card profile">${avatar(user, 56)}<div><b>${esc(user.name)}</b><span>${esc(S.ROLES[user.role].title)}</span><small>${esc(user.company)} · ${esc(user.email)}</small></div></section>
+  <section class="card card--flush"><ul class="menu">
+    <li><a href="#/notifications">${icon("bell", 20)}<span>Уведомления</span>${unseen ? `<b class="nav__count">${unseen}</b>` : ""}${icon("chevron", 16)}</a></li>
+    <li><a href="#/process">${icon("route", 20)}<span>Процесс (BPMN)</span>${icon("chevron", 16)}</a></li>
+    <li><a href="#/about">${icon("book", 20)}<span>О системе</span>${icon("chevron", 16)}</a></li>
+    <li><button type="button" data-demo-more>${icon("fast", 20)}<span>Демо-время</span>${icon("chevron", 16)}</button></li>
+  </ul></section>
+  <section class="card"><h2>${icon("users")} Сменить роль</h2><div class="roles">${S.USERS.filter((u) => u.id !== user.id).map((u) => `
+    <button type="button" class="role" data-switch="${u.id}">${avatar(u, 40)}<span><b>${esc(S.ROLES[u.role].title)}</b><small>${esc(u.name)}</small></span>${icon("chevron", 16)}</button>`).join("")}</div></section>
+  <button type="button" class="btn btn--danger btn--block btn--lg" data-logout-more>${icon("logout", 18)} Выйти</button>`;
+  return { title: "Ещё", html, mount: (root) => {
+    root.querySelectorAll("[data-switch]").forEach((b) => b.addEventListener("click", () => { S.login(b.dataset.switch); location.replace("#/"); }));
+    root.querySelector("[data-logout-more]").addEventListener("click", () => { S.logout(); location.replace("#/login"); });
+    root.querySelector("[data-demo-more]").addEventListener("click", () => document.querySelector("[data-demo]")?.click());
+  } };
+}

@@ -210,7 +210,7 @@ def main():
             assert status(pg, o3) == "closed"
             logout(pg)
 
-        @step("Мобильная ширина 390 px: нет горизонтальной прокрутки")
+        @step("Телефон 390 px: нет горизонтальной прокрутки; меню «Ещё» – смена роли и выход; «назад» – на главный экран")
         def t13():
             m = b.new_page(viewport={"width": 390, "height": 844})
             m.goto(BASE + "#/login"); m.wait_for_timeout(400)
@@ -220,6 +220,16 @@ def main():
                 m.evaluate(f"location.hash = {r!r}"); m.wait_for_timeout(400)
                 over = m.evaluate("document.querySelector('.main').scrollWidth > document.querySelector('.main').clientWidth + 1")
                 assert not over, f"горизонтальная прокрутка на {r}"
+            # меню «Ещё»: смена роли и выход доступны на телефоне
+            m.evaluate("location.hash = '#/more'"); m.wait_for_timeout(400)
+            m.click('[data-switch="u-driver"]'); m.wait_for_timeout(500)
+            assert "Рейс" in m.inner_text(".top") or "рейс" in m.inner_text(".content"), "после смены роли должен открыться экран водителя"
+            assert m.evaluate("window.logihubBack()") is False, "на главном экране роли «назад» выходит из приложения"
+            m.evaluate("location.hash = '#/trips'"); m.wait_for_timeout(300)
+            assert m.evaluate("window.logihubBack()") is True and m.evaluate("location.hash") == "#/trip", "«назад» ведёт на главный экран роли"
+            m.evaluate("location.hash = '#/more'"); m.wait_for_timeout(400)
+            m.click("[data-logout-more]"); m.wait_for_timeout(400)
+            assert "login" in m.evaluate("location.hash")
             m.close()
 
         for t in (t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13):

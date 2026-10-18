@@ -114,10 +114,12 @@ public class MainActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    /** «Назад» (кнопка или жест): закрыть окно → главный экран роли → выход. Историю страниц не перебираем. */
     @Override
     public void onBackPressed() {
-        if (web.canGoBack()) web.goBack();
-        else super.onBackPressed();
+        web.evaluateJavascript("window.logihubBack ? window.logihubBack() : false", result -> {
+            if (!"true".equals(result)) finish();
+        });
     }
 
     @Override
