@@ -43,6 +43,7 @@ public class MainActivity extends Activity {
         s.setDatabaseEnabled(true);
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
+        s.setTextZoom(100);   // вёрстка рассчитана на масштаб 100 % (системный крупный шрифт MIUI ломал сетку)
         s.setUserAgentString(s.getUserAgentString() + " LogiHubApp/1.0");
 
         final WebViewAssetLoader loader = new WebViewAssetLoader.Builder()
