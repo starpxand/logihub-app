@@ -100,6 +100,23 @@ let state = null;
 const listeners = new Set();
 export const now = () => new Date(Date.now() + (state?.clock || 0));
 export const iso = (d) => new Date(d).toISOString();
+
+// ------------------------------------------------------------------ движение рейса между отметками GPS
+export const AVG_SPEED = 55;   // км/ч – средняя скорость рейса с учётом остановок
+const MOVING = ["in_transit", "delayed"];
+/** Пройдено маршрута, % «сейчас»: после последней отметки водителя фура едет со средней скоростью,
+ *  но не дальше 95 % – подъезд и выгрузку отмечает сам водитель. В пробке (отклонение не перепланировано) почти стоит. */
+export function progress(o, t = now()) {
+  const r = o.route;
+  if (!r) return 0;
+  const p0 = r.progress ?? 0;
+  if (!MOVING.includes(o.status) || !r.at) return p0;
+  const k = o.status === "delayed" && !o.delay?.resolved ? 0.15 : 1;
+  const km = Math.max(0, (t - new Date(r.at)) / 3600e3) * AVG_SPEED * k;
+  return Math.min(95, Math.max(p0, p0 + (km / (o.distance || 1)) * 100));
+}
+// зафиксировать текущее положение как новую отметку (перед сменой скорости движения)
+const fix = (o) => { if (o.route) o.route = { ...o.route, progress: Math.round(progress(o) * 10) / 10, at: iso(now()) }; };
 // плановое время прибытия – конец окна доставки
 export const atWindowEnd = (d, win = "09:00–18:00") => { const x = new Date(d); const [h, m] = (win.split("–")[1] || "18:00").split(":"); x.setHours(+h, +m, 0, 0); return x; };
 
@@ -120,6 +137,7 @@ export const subscribe = (f) => { listeners.add(f); return () => listeners.delet
 export function init() {
   state = load();
   if (!state || state.version !== 2) state = seed();
+  for (const o of state.orders) if (o.route && MOVING.includes(o.status) && !o.route.at) o.route.at = iso(now());   // данные v1.1 – рейсы едут с этого момента
   tick(false);
   return state;
 }
@@ -283,12 +301,12 @@ export const startTrip = act((id) => {
   const o = order(id);
   if (!o.driverId) throw new ProcessError("Сначала диспетчер назначает водителя");
   move(o, "in_transit", "Водитель сверил груз с ТТН и начал рейс", "driver", { departedAt: iso(now()) });
-  o.route.progress = 3;
+  o.route.progress = 3; o.route.at = iso(now());
   notify(o, `Заказ ${code(o)} в пути, прогноз доставки ${dt(o.eta)}`, ["client", "dispatcher"]);
 });
 export const advance = act((id, step = 20) => {
   const o = order(id);
-  o.route.progress = Math.min(95, (o.route.progress || 0) + step);
+  o.route.progress = Math.min(95, Math.round(progress(o)) + step); o.route.at = iso(now());
   o.history.push({ status: o.status, note: `Геопозиция обновлена: пройдено ${o.route.progress} % маршрута`, by: "driver", at: iso(now()) });
 });
 // 17–18 – таймер отклонения и перепланирование
@@ -298,6 +316,7 @@ export const reportDelay = act((id, minutes, reason) => {
     o.history.push({ status: o.status, note: `Отставание ${minutes} мин – в пределах допуска (таймер не сработал)`, by: "driver", at: iso(now()) });
     return false;
   }
+  fix(o);
   move(o, "delayed", `Отклонение от графика: +${fmtMin(minutes)} (${reason})`, "system", { delay: { minutes, reason, resolved: false } });
   notify(o, `Отклонение от графика по рейсу ${code(o)}: +${fmtMin(minutes)}`, ["dispatcher"]);
   return true;
@@ -305,6 +324,7 @@ export const reportDelay = act((id, minutes, reason) => {
 export const replan = act((id, variant, extraMin, message) => {
   const o = order(id);
   const eta = new Date(new Date(o.eta).getTime() + extraMin * 60000);
+  fix(o);
   move(o, "delayed", `Маршрут перепланирован: ${variant}; новый ETA ${dt(eta)}. Клиент уведомлён`, "dispatcher",
     { eta: iso(eta), route: { ...o.route, variant }, delay: { ...o.delay, resolved: true } });
   notify(o, message || `Новый прогноз доставки ${code(o)}: ${dt(eta)}`, ["client", "driver"]);
@@ -452,7 +472,7 @@ function seed() {
     if (path.includes("paid")) o.paidAt = o.history.find((h) => h.status === "paid").at, o.payMethod = "по счёту";
     if (path.includes("picking")) o.picking = makePicking(o);
     if (path.includes("ready")) { o.picking.forEach((i) => { i.ok = true; i.checked = true; i.missing = false; }); o.ttnAt = o.history.find((h) => h.status === "ready").at; o.gate = 3; }
-    if (path.includes("in_transit")) { o.driverId = extra.driverId || 1; o.route = { progress: extra.progress ?? 100, variant: "Основной маршрут" }; o.departedAt = o.history.find((h) => h.status === "in_transit").at; }
+    if (path.includes("in_transit")) { o.driverId = extra.driverId || 1; o.route = { progress: extra.progress ?? 100, variant: "Основной маршрут", at: iso(now()) }; o.departedAt = o.history.find((h) => h.status === "in_transit").at; }
     if (status === "ready" && extra.driverId) { o.driverId = extra.driverId; o.route = { progress: 0, variant: "Основной маршрут" }; }
     if (path.includes("delivered")) { o.deliveredAt = o.history.find((h) => h.status === "delivered").at; o.onTime = extra.onTime ?? 1; }
     if (status === "closed") { o.inFull = extra.inFull ?? 1; o.otif = o.onTime && o.inFull ? 1 : 0; o.actAt = o.history.find((h) => h.status === "accepted").at; o.rating = extra.rating; }

@@ -37,6 +37,29 @@ const LAND = `${poly(COAST)} L-20 700 L-20 -40 Z`;
 const SAKH = `${poly(SAKH_PTS)} Z`;
 const AMUR = poly(AMUR_PTS);
 
+/** Города по пути к dest: [{ name, frac }] – доля пути от хаба (для полосы маршрута). */
+export function stopsOn(dest) {
+  const pts = routePoints(dest);
+  const total = pts.slice(1).reduce((a, p, i) => a + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
+  const out = [];
+  let acc = 0;
+  pts.forEach((p, i) => {
+    if (i) acc += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]);
+    const name = Object.keys(CITY).find((n) => n !== HUB && n !== dest && px(CITY[n]).every((v, k) => Math.abs(v - p[k]) < 0.01));
+    if (name && i < pts.length - 1) out.push({ name, frac: acc / total });
+  });
+  return out;
+}
+
+/** Передвинуть фуру рейса на карте (g – .map__ride) к progress, % – без перерисовки карты. */
+export function placeRide(g, dest, progress) {
+  const pts = routePoints(dest), t = progress / 100;
+  const [x, y] = along(pts, t);
+  g.querySelector(".map__truck")?.setAttribute("transform", `translate(${x} ${y})`);
+  g.querySelector(".map__done")?.setAttribute("d", line(donePart(pts, t)));
+  g.querySelector(".map__tag")?.setAttribute("transform", `translate(${x + 14} ${y - 26})`);
+}
+
 // пройденная часть ломаной до доли t
 function donePart(pts, t) {
   const total = pts.slice(1).reduce((a, p, i) => a + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
@@ -74,7 +97,7 @@ export function animateRides(svg, rides, { speed = 0.035, loop = true } = {}) {
   return () => cancelAnimationFrame(raf);
 }
 
-/** Карта: rides – [{ dest, progress, tone, label, active, replan }] */
+/** Карта: rides – [{ dest, progress, tone, label, active, replan, id }]; id – заказ, рейс которого едет «вживую» (см. live.js) */
 export function mapSvg(rides = [], { compact = false, dark = false } = {}) {
   const routes = Object.keys(VIA).map((d) => `<path class="map__road" d="${line(routePoints(d))}"/>`).join("");
   const ferry = (() => { const a = px([140.25, 49.09]), b = px([142.05, 47.04]); return `<path class="map__ferry" d="M${a[0]} ${a[1]} L${b[0]} ${b[1]}"/>`; })();
@@ -89,7 +112,7 @@ export function mapSvg(rides = [], { compact = false, dark = false } = {}) {
     const t = (r.progress ?? 0) / 100;
     const done = donePart(pts, t);
     const [x, y] = along(pts, t);
-    return `<g class="map__ride map__ride--${r.tone || "ok"}${r.active ? " is-active" : ""}">
+    return `<g class="map__ride map__ride--${r.tone || "ok"}${r.active ? " is-active" : ""}"${r.id ? ` data-oid="${r.id}" data-dest="${r.dest}"` : ""}>
       <path class="map__plan" d="${line(pts)}"/>${r.replan ? `<path class="map__replan" d="${line(pts.map((p, i) => i && i < pts.length - 1 ? [p[0] + 14, p[1] + 10] : p))}"/>` : ""}
       <path class="map__done" d="${line(done)}"/>
       <g class="map__truck" transform="translate(${x} ${y})"><circle r="11"/><path d="M-5 -3h6v6h-6zM1 0h3l1.5 1.5V3H1z" fill="#fff"/></g>
