@@ -1,5 +1,5 @@
 // Service worker: приложение работает офлайн (кэш оболочки, данных аналитики и изображений).
-const CACHE = "logihub-app-v1";
+const CACHE = "logihub-app-v2";
 const CORE = [
   "./", "index.html", "manifest.webmanifest", "css/app.css",
   "js/main.js", "js/store.js", "js/pricing.js", "js/ui.js", "js/actions.js", "js/map.js", "js/charts.js",
@@ -7,6 +7,7 @@ const CORE = [
   "js/views/dispatcher.js", "js/views/driver.js", "js/views/analytics.js", "js/views/docs.js",
   "data/analytics.json", "assets/icons/icon.svg", "assets/icons/icon-192.png",
   "assets/img/login_hero.jpg", "assets/img/avatar_client.jpg", "assets/img/avatar_manager.jpg", "assets/img/avatar_driver.jpg",
+  "assets/img/avatar_warehouse.jpg", "assets/img/avatar_dispatcher.jpg",
   "assets/img/empty_parcels.jpg", "assets/img/truck_reefer.jpg", "assets/img/warehouse_scan.jpg",
 ];
 
