@@ -44,7 +44,7 @@ const NAV = {
     ["trips", "Маршрутные листы", "file", driver.trips],
   ],
 };
-const COMMON = { order: common.order, process: common.process, notifications: common.notifications, about: common.about, doc: docs.view };
+const COMMON = { order: common.order, process: common.process, notifications: common.notifications, about: common.about, doc: docs.view, more: common.more };
 
 const app = document.getElementById("app");
 let current = null;
@@ -115,13 +115,14 @@ function shell(user, nav, route, page) {
       <form class="search" data-search role="search"><span>${icon("search", 16)}</span><input name="q" placeholder="Номер заказа, например LH-15874" aria-label="Поиск заказа" autocomplete="off"></form>
       <button class="icon-btn demo-btn" data-demo title="Демо-время: проверка таймеров процесса" aria-label="Демо-время">${icon("fast")}</button>
       <div class="bell"><button class="icon-btn" data-bell aria-label="Уведомления">${icon("bell")}${unseen ? `<b class="dot">${unseen > 9 ? "9+" : unseen}</b>` : ""}</button></div>
+      <a class="me-btn" href="#/more" title="${esc(user.name)} – профиль, смена роли, выход" aria-label="Профиль и выход">${avatar(user, 34)}</a>
     </header>
     <section class="content" id="content">${page.html}</section>
   </div>
   <nav class="tabs" aria-label="Разделы">${nav.slice(0, 4).map(([r, label, ic, , count]) => {
     const n = count?.() || 0;
-    return `<a class="tabs__item${r === route ? " is-active" : ""}" href="#/${r}">${icon(ic, 20)}<span>${esc(label.split(" ")[0])}</span>${n ? `<b>${n}</b>` : ""}</a>`;
-  }).join("")}<a class="tabs__item${route === "notifications" ? " is-active" : ""}" href="#/notifications">${icon("bell", 20)}<span>Ещё</span>${unseen ? "<b></b>" : ""}</a></nav>`;
+    return `<a class="tabs__item${r === route ? " is-active" : ""}" href="#/${r}">${icon(ic, 20)}<span>${esc(label.length <= 11 ? label : label.split(" ")[0])}</span>${n ? `<b>${n}</b>` : ""}</a>`;
+  }).join("")}<a class="tabs__item${["more", "notifications", "process", "about"].includes(route) ? " is-active" : ""}" href="#/more">${icon("menu", 20)}<span>Ещё</span>${unseen ? "<b></b>" : ""}</a></nav>`;
 }
 
 let logoN = 0;
@@ -180,6 +181,20 @@ async function demoPanel() {
   else S.shiftClock(Number(res.d) * 3600e3);
   toast(`Время приложения: ${S.now().toLocaleString("ru-RU")}`);
 }
+
+// Кнопка/жест «Назад» в Android-приложении: закрыть окно → на главный экран роли → выход из приложения
+window.logihubBack = () => {
+  const box = document.querySelector(".modal");
+  if (box) { document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })); return true; }   // модальное окно закрывается как по Esc
+  const menu = document.querySelector(".bell__menu");
+  if (menu) { menu.remove(); return true; }
+  const user = S.session();
+  if (!user) return false;
+  const home = `#/${NAV[user.role][0][0]}`;
+  if (location.hash === home || location.hash === "#/" || location.hash === "") return false;
+  location.replace(home);
+  return true;
+};
 
 export function go(hash) {
   if (location.hash === hash) render(); else location.hash = hash;
