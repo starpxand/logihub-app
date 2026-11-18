@@ -343,20 +343,78 @@ code { font: 13px var(--mono); background: var(--line-2); padding: 1px 6px; bord
 .map__ride:not(.is-active) .map__tag { opacity: .85; }
 
 /* водитель */
-.driver { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; max-width: 720px; }
-.driver__actions .btn { min-width: 0; white-space: normal; line-height: 1.2; }
+.driver { --driver-path: #b84c17; --driver-paper: #f8fafc; max-width: 1340px; margin-inline: auto; }
+.driver__hero {
+  min-height: 188px; padding: clamp(20px, 3vw, 36px); margin-bottom: 20px;
+  display: grid; align-content: center; gap: 8px; border-radius: 19px;
+  color: #fff; background: var(--navy);
+  background-image: linear-gradient(90deg, #0b1b3f 0%, #0b1b3f 31%, #0b1b3fe8 51%, #0b1b3f33 100%), url("../assets/img/truck_reefer.jpg");
+  background-position: center, right 59%;
+  background-size: cover, 74% auto;
+  background-repeat: no-repeat;
+}
+.driver__id, .driver__vehicle { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.driver__id h1 { font-size: clamp(23px, 2.9vw, 37px); line-height: 1.12; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.driver__id .badge { padding: 4px 10px; }
+.driver__id .badge--ok { color: #126847; }
+.driver__id .badge--bad { color: #962727; }
+.driver__id .badge--info { color: #193ea9; }
+.driver__direction { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin: 3px 0; font-size: clamp(16px, 1.6vw, 23px); font-weight: 600; }
+.driver__direction [aria-hidden] { color: var(--orange-2); }
+.driver__vehicle { color: #d4deef; font-size: 13px; }
+.driver__vehicle .bpmn-chip { border: 1px solid #ffffff33; }
+.driver__plate { font: 600 12px var(--mono); color: #fff; border: 1px solid #ffffff4d; border-radius: 5px; padding: 2px 6px; }
+.driver__incident { margin-bottom: 16px; flex-wrap: nowrap; }
+.driver__incident > span:first-of-type { min-width: 0; }
+.driver__layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(290px, 1fr); gap: 16px; align-items: start; }
+.driver__layout .card > .driver__section-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 16px; }
+.driver__layout .driver__section-head h2 { font-size: 16px; margin: 0; }
+.driver__section-head > span { color: var(--ink-2); font-size: 12px; }
+.driver__section-head h2 .ic { color: var(--navy-3); }
+.driver__layout .driver__map > .driver__section-head { padding: 15px 20px; margin: 0; }
+.driver__map .map { height: clamp(225px, 25vw, 314px); background: #f1f4e9; }
+.map--focus .map__land { fill: #f0f3e7; stroke: #b5c5b1; }
+.map--focus .map__sea { fill: #dbeaf2; }
+.map--focus .map__road { stroke-width: 3; }
+.map--focus .map__city text { font-size: 14px; stroke: #f0f3e7; }
+.map--focus .map__city--context { opacity: .64; }
+.map--focus .map__city--context text, .map--focus .map__sea-label { display: none; }
+.map--focus .map__plan { stroke: #33496c; stroke-width: 5; stroke-dasharray: 2 7; opacity: .8; }
+.map--focus .map__done { stroke: #dc621f; stroke-width: 7; }
+.map--focus .map__ride--bad .map__done { stroke: #b63e40; }
+.driver__progress { padding: 10px 20px 16px; color: var(--ink-2); font-size: 13px; }
+.driver__progress > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 2px 12px; }
+.driver__progress strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.driver__progress progress { display: block; appearance: none; width: 100%; height: 6px; margin-top: 8px; border: 0; overflow: hidden; border-radius: 6px; background: var(--line); }
+.driver__progress progress::-webkit-progress-bar { background: var(--line); }
+.driver__progress progress::-webkit-progress-value { background: #d75d20; border-radius: 6px; }
+.driver__progress progress::-moz-progress-bar { background: #d75d20; border-radius: 6px; }
+.driver__eta { margin: 0; font-size: clamp(21px, 2.4vw, 29px); font-weight: 750; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+.driver__window, .driver__gps { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+.driver__gps { padding-top: 11px; margin-top: 13px; border-top: 1px solid var(--line); }
+.driver__actions { display: grid; gap: 8px; margin-top: 14px; }
+.driver__actions .btn { width: 100%; min-height: 45px; height: auto; padding-block: 10px; white-space: normal; line-height: 1.22; }
+.driver__actions .btn--primary { background: var(--navy-2); }
+.driver__actions .btn--primary:hover { background: var(--navy-3); }
 .route-list { list-style: none; margin: 0; padding: 0; }
-.route-list li { position: relative; padding: 0 0 16px 30px; }
-.route-list li::before { content: ""; position: absolute; left: 8px; top: 18px; bottom: 0; width: 2px; background: var(--line); }
+.route-list li { position: relative; padding: 0 0 16px 27px; min-height: 36px; overflow-wrap: anywhere; }
+.route-list li:last-child { padding-bottom: 0; min-height: 0; }
+.route-list li::before { content: ""; position: absolute; left: 7px; top: 12px; bottom: -6px; width: 2px; background: #d8e2f1; }
 .route-list li:last-child::before { display: none; }
-.route-list li span { position: absolute; left: 0; top: 3px; width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--line); background: #fff; }
-.route-list .is-done span { background: var(--orange); border-color: var(--orange); }
-.route-list .is-done::before { background: var(--orange); }
-.route-list .is-cur span { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-2); }
-.route-list b { display: block; font-weight: 550; } .route-list small { color: var(--ink-3); }
-.driver__actions { display: grid; gap: 10px; position: sticky; bottom: 12px; background: rgba(255, 255, 255, .96); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 16px; padding: 12px; box-shadow: 0 -10px 30px -18px rgba(15, 23, 42, .35); }
-.driver__actions:empty { display: none; }
-.driver__actions .btn { height: 52px; font-size: 15px; border-radius: 13px; }
+.route-list li span { position: absolute; left: 2px; top: 5px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #7888a0; background: #fff; }
+.route-list .is-done span { background: var(--driver-path); border-color: var(--driver-path); }
+.route-list .is-done::before { background: var(--driver-path); }
+.route-list .is-cur span { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-2); }
+.route-list .is-cur b { color: #244ebf; }
+.route-list b { display: block; font-weight: 600; }
+.route-list small { color: var(--ink-2); font-size: 12.5px; }
+.driver__cargo-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 14px; margin: 0 0 14px; font-size: 18px; font-weight: 700; }
+.driver__cargo-name span { color: var(--ink-2); font-size: 13px; font-weight: 500; }
+.driver__details { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 7px 14px; margin: 0 0 14px; font-size: 13px; }
+.driver__details dt { color: var(--ink-2); }
+.driver__details dd { margin: 0; overflow-wrap: anywhere; font-weight: 550; }
+.driver__docs { display: flex; flex-wrap: wrap; gap: 7px; }
+.driver__docs .btn { min-height: 40px; padding-inline: 9px; font-size: 12.5px; background: var(--driver-paper); }
 
 /* процесс BPMN */
 .lanes { display: grid; gap: 10px; }
@@ -483,7 +541,7 @@ code { font: 13px var(--mono); background: var(--line-2); padding: 1px 6px; bord
 .login__in { animation: rise .7s both; }
 
 /* ---------------------------------------------------------------- появление экрана (при переходе, не при каждом действии) */
-.enter .page-head, .enter .kpi, .enter .card, .enter .banner, .enter .lane, .enter .tile, .enter .paper, .enter .driver > * { animation: rise .55s cubic-bezier(.2, .7, .2, 1) both; }
+.enter .page-head, .enter .kpi, .enter .card, .enter .banner, .enter .lane, .enter .tile, .enter .paper { animation: rise .55s cubic-bezier(.2, .7, .2, 1) both; }
 .enter .kpi:nth-child(2) { animation-delay: .06s; } .enter .kpi:nth-child(3) { animation-delay: .12s; } .enter .kpi:nth-child(4) { animation-delay: .18s; }
 .enter .cols > :nth-child(2), .enter .stack > :nth-child(2) { animation-delay: .12s; }
 .enter .stack > :nth-child(3) { animation-delay: .2s; } .enter .stack > :nth-child(4) { animation-delay: .26s; }
@@ -549,9 +607,13 @@ code { font: 13px var(--mono); background: var(--line-2); padding: 1px 6px; bord
   .tabs__item.is-active { color: var(--orange); }
   .tabs__item b { position: absolute; top: 0; left: calc(50% + 6px); min-width: 16px; height: 16px; border-radius: 8px; background: var(--red); color: #fff; font-size: 10px; display: grid; place-items: center; padding: 0 4px; }
   .tabs__item b:empty { min-width: 8px; height: 8px; padding: 0; }
-  .driver__actions { bottom: 76px; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; }
-  .driver__actions .btn { height: 44px; font-size: 13.5px; }
-  .driver__actions .btn--primary, .driver__actions .btn--accent { grid-column: 1 / -1; height: 50px; font-size: 15px; }
+  .driver__layout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .driver__hero { margin-bottom: 12px; min-height: 147px; border-radius: 15px; background-size: cover; background-position: center, 56% 63%; }
+  .driver__arrival { grid-row: 1; }
+  .driver__actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .driver__actions .btn { font-size: 13.5px; padding-inline: 7px; }
+  .driver__actions .btn--primary, .driver__actions .btn--accent { grid-column: 1 / -1; }
+  .driver__map .map { height: clamp(188px, 56vw, 300px); }
   .brand--top span { display: none; }
   .me-btn { display: block; }
   .top .demo-btn { display: none; }

@@ -98,14 +98,26 @@ export function animateRides(svg, rides, { speed = 0.035, loop = true } = {}) {
 }
 
 /** Карта: rides – [{ dest, progress, tone, label, active, replan, id }]; id – заказ, рейс которого едет «вживую» (см. live.js) */
-export function mapSvg(rides = [], { compact = false, dark = false } = {}) {
+export function mapSvg(rides = [], { compact = false, dark = false, focus = null } = {}) {
+  const focusPoints = CITY[focus] && routePoints(focus);
+  let view = `0 0 ${W} ${H}`;
+  if (focusPoints) {
+    const xs = focusPoints.map(([x]) => x), ys = focusPoints.map(([, y]) => y);
+    const width = Math.max(390, Math.max(...xs) - Math.min(...xs) + 160);
+    const height = Math.max(235, Math.max(...ys) - Math.min(...ys) + 68);
+    const x = (Math.max(...xs) + Math.min(...xs) - width) / 2;
+    const y = (Math.max(...ys) + Math.min(...ys) - height) / 2;
+    view = `${x} ${y} ${width} ${height}`;
+  }
   const routes = Object.keys(VIA).map((d) => `<path class="map__road" d="${line(routePoints(d))}"/>`).join("");
   const ferry = (() => { const a = px([140.25, 49.09]), b = px([142.05, 47.04]); return `<path class="map__ferry" d="M${a[0]} ${a[1]} L${b[0]} ${b[1]}"/>`; })();
   const cities = Object.entries(CITY).map(([n, c]) => {
     const [x, y] = px(c);
     const hub = n === HUB;
-    return `<g class="map__city${hub ? " map__city--hub" : ""}" transform="translate(${x} ${y})"><circle r="${hub ? 9 : 6}"/>
-      <text x="${n === "Биробиджан" ? -12 : n === "Южно-Сахалинск" ? -12 : 12}" y="${n === "Владивосток" ? 20 : n === "Благовещенск" ? 22 : -10}" text-anchor="${n === "Биробиджан" || n === "Южно-Сахалинск" ? "end" : "start"}">${hub ? "Хаб · " : ""}${n}</text></g>`;
+    const highlight = !focusPoints || hub || n === focus;
+    const caption = hub ? (focusPoints ? "Склад ЛогиХаб" : `Хаб · ${n}`) : n;
+    return `<g class="map__city${hub ? " map__city--hub" : ""}${highlight ? "" : " map__city--context"}" transform="translate(${x} ${y})"><circle r="${hub ? 9 : 6}"/>
+      <text x="${n === "Биробиджан" || n === "Южно-Сахалинск" ? -12 : 12}" y="${n === "Владивосток" || n === "Благовещенск" ? 20 : -10}" text-anchor="${n === "Биробиджан" || n === "Южно-Сахалинск" ? "end" : "start"}">${caption}</text></g>`;
   }).join("");
   const rideEls = rides.map((r) => {
     const pts = routePoints(r.dest);
@@ -119,8 +131,8 @@ export function mapSvg(rides = [], { compact = false, dark = false } = {}) {
       ${r.label ? `<g class="map__tag" transform="translate(${x + 14} ${y - 26})"><rect width="${r.label.length * 6.6 + 16}" height="22" rx="11"/><text x="8" y="15">${r.label}</text></g>` : ""}
     </g>`;
   }).join("");
-  return `<svg class="map${compact ? " map--compact" : ""}${dark ? " map--dark" : ""}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Карта рейсов">
-    <rect width="${W}" height="${H}" class="map__sea"/>
+  return `<svg class="map${compact ? " map--compact" : ""}${dark ? " map--dark" : ""}${focusPoints ? " map--focus" : ""}" viewBox="${view}" role="img" aria-label="${focusPoints ? "Карта текущего маршрута" : "Карта рейсов"}">
+    <rect ${focusPoints ? 'x="-500" y="-500" ' : ""}width="${focusPoints ? W + 1000 : W}" height="${focusPoints ? H + 1000 : H}" class="map__sea"/>
     <path class="map__land" d="${LAND}"/><path class="map__land" d="${SAKH}"/>
     <path class="map__river" d="${AMUR}"/>
     <g class="map__grid">${Array.from({ length: 9 }, (_, i) => `<path d="M${i * 95} 0V${H}"/>`).join("")}${Array.from({ length: 7 }, (_, i) => `<path d="M0 ${i * 100}H${W}"/>`).join("")}</g>

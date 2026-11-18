@@ -128,6 +128,24 @@ export function startLive(root) {
       const o = S.order(g.dataset.oid);
       if (o) placeRide(g, g.dataset.dest, S.progress(o, t));
     });
+    const driverProgress = root.querySelector("[data-driver-progress]");
+    if (driverProgress) {
+      const order = S.order(driverProgress.dataset.driverProgress);
+      if (order) {
+        const p = S.progress(order, t);
+        driverProgress.value = p;
+        const km = Math.round(order.distance * p / 100).toLocaleString("ru-RU");
+        root.querySelector("[data-driver-km]").textContent = `${km} из ${order.distance.toLocaleString("ru-RU")} км`;
+        const stops = root.querySelectorAll("[data-driver-stops] li");
+        const current = Math.round(p / 100 * (stops.length - 1));
+        stops.forEach((stop, index) => {
+          stop.classList.toggle("is-done", index < current);
+          stop.classList.toggle("is-cur", index === current);
+          if (index === current) stop.setAttribute("aria-current", "step");
+          else stop.removeAttribute("aria-current");
+        });
+      }
+    }
     n++;
   };
   const timer = setInterval(step, 1000);
