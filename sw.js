@@ -1,5 +1,5 @@
 // Service worker: приложение работает офлайн (кэш оболочки, данных аналитики и изображений).
-const CACHE = "logihub-app-v4";
+const CACHE = "logihub-app-v5";
 const CORE = [
   "./", "index.html", "manifest.webmanifest", "css/app.css",
   "js/main.js", "js/store.js", "js/pricing.js", "js/ui.js", "js/actions.js", "js/map.js", "js/charts.js", "js/live.js",
@@ -9,6 +9,7 @@ const CORE = [
   "assets/img/login_hero.jpg", "assets/img/avatar_client.jpg", "assets/img/avatar_manager.jpg", "assets/img/avatar_driver.jpg",
   "assets/img/avatar_warehouse.jpg", "assets/img/avatar_dispatcher.jpg",
   "assets/img/empty_parcels.jpg", "assets/img/truck_reefer.jpg", "assets/img/warehouse_scan.jpg",
+  "assets/img/telegram-client.png", "assets/img/telegram-staff.png",
 ];
 
 self.addEventListener("install", (e) => e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())));

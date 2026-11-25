@@ -49,6 +49,19 @@ const P = {
 export const icon = (name, size = 18, cls = "") =>
   `<svg class="ic ${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || ""}</svg>`;
 
+const TELEGRAM_BOTS = [
+  { name: "logihub_logistics_bot", title: "Бот для клиентов", note: "Заявки и статусы заказов. Доступен без кода.", code: "telegram-client.png" },
+  { name: "logihub_manager_bot", title: "Бот для сотрудников", note: "Заявки, склад и рейсы. Для входа нужен код сотрудника.", code: "telegram-staff.png" },
+];
+
+export function telegramBots() {
+  return `<div class="telegram-bots">${TELEGRAM_BOTS.map(({ name, title, note, code }) => `
+    <a class="telegram-bot" href="https://t.me/${name}" target="_blank" rel="noopener">
+      <img src="assets/img/${code}" width="112" height="112" alt="">
+      <span><strong>${title}</strong><small>@${name}</small><span>${note}</span></span>
+    </a>`).join("")}</div>`;
+}
+
 export const badge = (status, short = false) => `<span class="badge badge--${STATUSES[status]?.tone || "muted"}" title="${esc(statusText(status))}">${esc(short ? STATUSES[status]?.short || statusText(status) : statusText(status))}</span>`;
 export const stages = (list) => list?.length ? `<span class="bpmn-chip" title="Этапы BPMN-модели «Процесс управления логистикой»">BPMN ${list.length > 1 ? `${list[0]}–${list.at(-1)}` : list[0]}</span>` : "";
 export const orderLink = (o) => `<a class="mono link" href="#/order/${o.id}">${code(o)}</a>`;

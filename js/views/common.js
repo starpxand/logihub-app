@@ -1,6 +1,6 @@
 // Общие страницы: карточка заказа, процесс BPMN, уведомления, о системе.
 import * as S from "../store.js";
-import { icon, esc, badge, stages, money, kg, fmtDT, fmtDate, ago, left, avatar, empty } from "../ui.js";
+import { icon, esc, badge, stages, money, kg, fmtDT, fmtDate, ago, left, avatar, empty, telegramBots } from "../ui.js";
 import { buttons, bind } from "../actions.js";
 import { mapSvg } from "../map.js";
 import { shipPanel, lifecycle, startLive } from "../live.js";
@@ -162,11 +162,12 @@ export function notifications(params, user) {
 export function about(params, user) {
   const html = `
   <div class="page-head"><div><h1>О системе «ЛогиХаб»</h1><p class="muted">Веб-приложение платформы управления логистикой: заявка, договор-счёт, склад, рейс, приёмка и OTIF – в одном окне.</p></div></div>
+  <section class="card"><h2>${icon("telegram")} Боты в Telegram</h2>
+    ${telegramBots()}
+  </section>
   <div class="grid-cards">
     ${[["book", "Wiki продукта", "Описание, роли, BPMN-модель и требования", "https://starpxand.github.io/logihub-wiki/"],
       ["chart", "Дашборд", "Plotly Dash: KPI, OTIF, выручка и затраты", "https://github.com/starpxand/logihub-dashboard"],
-      ["telegram", "Бот для клиентов", "@logihub_logistics_bot – заявки и статусы", "https://t.me/logihub_logistics_bot"],
-      ["telegram", "Бот для сотрудников", "@logihub_manager_bot – очередь, склад, рейсы", "https://t.me/logihub_manager_bot"],
       ["layers", "UX/UI-макет", "10 экранов, по которым сделано приложение", "https://github.com/starpxand/logihub-design"],
       ["file", "Исходный код", "github.com/starpxand/logihub-app", "https://github.com/starpxand/logihub-app"]].map(([ic, t, s, href]) =>
       `<a class="tile" href="${href}" target="_blank" rel="noopener">${icon(ic, 22)}<b>${t}</b><small>${s}</small></a>`).join("")}

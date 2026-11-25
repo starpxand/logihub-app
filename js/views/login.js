@@ -1,6 +1,6 @@
 // D1 · Вход в систему – точка входа для всех дорожек BPMN; роль определяется учётной записью.
 import * as S from "../store.js";
-import { icon, esc, avatar, toast, countUp } from "../ui.js";
+import { icon, esc, avatar, toast, countUp, telegramBots } from "../ui.js";
 import { mapSvg, animateRides } from "../map.js";
 
 // живые рейсы на карте экрана входа
@@ -40,7 +40,10 @@ export function render() {
         </form>
         <div class="or"><span>или демо-вход по роли</span></div>
         <div class="roles">${roles}</div>
-        <a class="btn btn--ghost btn--block" href="https://t.me/logihub_logistics_bot" target="_blank" rel="noopener">${icon("telegram", 16)} Войти через Telegram-бота</a>
+        <details class="login__telegram">
+          <summary>${icon("telegram", 16)} Боты в Telegram</summary>
+          ${telegramBots()}
+        </details>
         <p class="hint">Пароль всех демо-учётных записей – <code>${PASSWORD}</code>. Роль пользователя (клиент, менеджер, кладовщик, диспетчер, водитель)
           определяется автоматически после входа. Данные хранятся только в этом браузере.</p>
       </div>
